@@ -422,11 +422,4 @@ int main() {
         std::cout << "Plaintexts do not match :(" << std::endl;
         return 1;
     }
-
-    std::string out;
-
-    in = final_permutation(out);
-    std::cout << in << std::endl;
-
-    return 0;
 }
