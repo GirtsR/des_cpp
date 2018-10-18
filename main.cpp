@@ -320,8 +320,10 @@ int main() {
 
     if (plaintext == final_plaintext) {
         std::cout << "Plaintexts match!" << std::endl;
+        return 0;
     } else {
         std::cout << "Plaintexts do not match :(" << std::endl;
+        return 1;
     }
 
     // P-Box permutation
