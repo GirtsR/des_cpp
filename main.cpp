@@ -371,6 +371,8 @@ int main() {
 
     //std::string in = "0000000000111111111100000000001111111111000000000011111111110000";    // 64
     //std::string key = "00000000001111111111000000000011111111110000000000111111";    // 56
+    //8787878787878787
+    //00001110011001100100100110011110101011011000001100111001
 
     //Encryption
     std::cout << "Encrypting..." << std::endl;
@@ -385,17 +387,23 @@ int main() {
 
         std::string left = in.substr(0, in.length() / 2);
         std::string right = in.substr(in.length() / 2);
-        std::string right_next = right;
+        std::string right_next;
 
         prev_key = shift_key_left(prev_key, round);
         std::string round_key = compress_key(prev_key);
 
+        std::cout << "Round key: " << round_key << std::endl;
         right_next = feistel(right, round_key);
 
         right_next = exclusive_or_32(left, right_next);
 
-        //Generate input for the next round
-        in = right + right_next;
+        if (round != 15) {
+            //Generate input for the next round
+            in = right + right_next;
+        } else {
+            //Last round - output changes
+            in = right_next + right;
+        }
         std::cout << "Generated cipher in this round: " << in << std::endl;
     }
 
@@ -413,17 +421,23 @@ int main() {
 
         std::string left = in.substr(0, in.length() / 2);
         std::string right = in.substr(in.length() / 2);
-        std::string right_next = right;
+        std::string right_next;
 
         prev_key = shift_key_right(prev_key, round);
         std::string round_key = compress_key(prev_key);
 
+        std::cout << "Round key: " << round_key << std::endl;
         right_next = feistel(right, round_key);
 
         right_next = exclusive_or_32(left, right_next);
 
-        //Generate input for the next round
-        in = right + right_next;
+        if (round != 15) {
+            //Generate input for the next round
+            in = right + right_next;
+        } else {
+            //Last round - output swaps
+            in = right_next + right;
+        }
         std::cout << "Generated cipher in this round: " << in << std::endl;
     }
 
