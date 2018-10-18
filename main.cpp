@@ -203,8 +203,21 @@ int main() {
         }
     }
 
-    std::string in = "0000000000111111111100000000001111111111000000000011111111110000";    // 64
-    std::string key = "00000000001111111111000000000011111111110000000000111111";    // 56
+    std::string key;
+    while (true) {
+        std::cout << "Please enter a 56 bit key: ";
+        std::cin >> key;
+        if (key.length() == 56) {
+            break;
+        } else {
+            std::cout << "Incorrect key length";
+        }
+    }
+
+    //std::string in = "0000000000111111111100000000001111111111000000000011111111110000";    // 64
+    //std::string key = "00000000001111111111000000000011111111110000000000111111";    // 56
+
+    std::string in = plaintext;
 
     in = initial_permutation(in);
     std::cout << in << std::endl;
