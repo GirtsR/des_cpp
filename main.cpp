@@ -148,12 +148,21 @@ std::string feistel(std::string input, std::string subkey) {
     return "";
 }
 
+// Rotate left
 std::bitset<28> rol(std::bitset<28> key, int n) {
     return (key << n) | (key >> (28 - n));
 }
 
+// Rotate right
+std::bitset<28> ror(std::bitset<28> key, int n) {
+    return (key >> n) | (key << (28 - n));
+}
+
 // Key rotations in rounds
 int key_shift_by_round[16] = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
+
+// Key rotations in rounds while decrypting
+int key_shift_by_round_decrypt[16] = {0, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
 
 // Compression permutation
 int com_per[48] = {
@@ -163,13 +172,25 @@ int com_per[48] = {
     44, 49, 39, 56, 34, 53, 46, 42, 50, 36, 29, 32
 };
 
-std::string shift_key(const std::string &key, int round) {
+std::string shift_key_left(const std::string &key, int round) {
     unsigned long len = key.length();
 
     std::string left = key.substr(0, len / 2);
     std::string right = key.substr(len / 2);
     std::bitset<28> r_left = rol(std::bitset<28>(left), key_shift_by_round[round]);
     std::bitset<28> r_right = rol(std::bitset<28>(right), key_shift_by_round[round]);
+
+    return r_left.to_string() + r_right.to_string();
+}
+
+
+std::string shift_key_right(const std::string &key, int round) {
+    unsigned long len = key.length();
+
+    std::string left = key.substr(0, len / 2);
+    std::string right = key.substr(len / 2);
+    std::bitset<28> r_left = ror(std::bitset<28>(left), key_shift_by_round_decrypt[round]);
+    std::bitset<28> r_right = ror(std::bitset<28>(right), key_shift_by_round_decrypt[round]);
 
     return r_left.to_string() + r_right.to_string();
 }
@@ -238,13 +259,12 @@ int main() {
     //std::string in = "0000000000111111111100000000001111111111000000000011111111110000";    // 64
     //std::string key = "00000000001111111111000000000011111111110000000000111111";    // 56
 
+    //Encryption
+    std::cout << "Encrypting..." << std::endl;
+
     std::string in = plaintext;
 
     in = initial_permutation(in);
-    std::cout << in << std::endl;
-
-    in = final_permutation(in);
-    std::cout << in << std::endl;
 
     std::string prev_key = init_key_perm(key);
 
@@ -255,11 +275,8 @@ int main() {
         std::string right = in.substr(in.length() / 2);
         std::string right_next = right;
 
-        prev_key = shift_key(prev_key, round);
+        prev_key = shift_key_left(prev_key, round);
         std::string round_key = compress_key(prev_key);
-
-        std::cout << "Left: " << left << std::endl;
-        std::cout << "Right " << right << std::endl;
 
         right_next = feistel(right, round_key);
 
@@ -267,6 +284,44 @@ int main() {
 
         //Generate input for the next round
         in = right + right_next;
+        std::cout << "Generated cipher in this round: " << in << std::endl;
+    }
+
+    std::string ciphertext = final_permutation(in);
+    std::cout << "Ciphertext: " << ciphertext << " | " << bin_to_hex(ciphertext) << std::endl;
+
+    //Decryption
+    std::cout << "Decrypting..." << std::endl;
+
+    in = initial_permutation(ciphertext);
+
+    prev_key = init_key_perm(key);
+    for (int round = 0; round < 16; round++) {
+        std::cout << "Round " << round + 1 << ":" << std::endl;
+
+        std::string left = in.substr(0, in.length() / 2);
+        std::string right = in.substr(in.length() / 2);
+        std::string right_next = right;
+
+        prev_key = shift_key_right(prev_key, round);
+        std::string round_key = compress_key(prev_key);
+
+        right_next = feistel(right, round_key);
+
+        right_next = exclusive_or_32(left, right_next);
+
+        //Generate input for the next round
+        in = right + right_next;
+        std::cout << "Generated cipher in this round: " << in << std::endl;
+    }
+
+    std::string final_plaintext = final_permutation(in);
+    std::cout << "Decrypted plaintext: " << final_plaintext << " | " << bin_to_hex(final_plaintext) << std::endl;
+
+    if (plaintext == final_plaintext) {
+        std::cout << "Plaintexts match!" << std::endl;
+    } else {
+        std::cout << "Plaintexts do not match :(" << std::endl;
     }
 
     // P-Box permutation
