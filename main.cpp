@@ -20,14 +20,8 @@ std::string initial_permutation(std::string input) {
     }
     return output;
 }
-int main() {
-    std::cout << "Welcome to this DES cipher implemntation!\n" <<
-              "Created by: Ģirts Rudzišs and Emīls Ozoliņš" << std::endl;
 
-    std::string in = "1234567890123456789012345678901234567890123456789012345678901234";
-
-    std::cout << initial_permutation(in) << std::endl;
-
+std::string final_permutation(std::string input) {
     // IP^-1
     int final_permutation[64] = {
         40, 8, 48, 16, 56, 24, 64, 32,
@@ -39,6 +33,25 @@ int main() {
         34, 2, 42, 10, 50, 18, 58, 26,
         33, 1, 41, 9, 49, 17, 57, 25
     };
+
+    std::string output;
+    for (int i = 0; i < input.length(); i++) {
+        output += input[final_permutation[i]-1];
+    }
+    return output;
+}
+
+int main() {
+    std::cout << "Welcome to this DES cipher implemntation!\n" <<
+              "Created by: Ģirts Rudzišs and Emīls Ozoliņš" << std::endl;
+
+    std::string in = "1234567890123456789012345678901234567890123456789012345678901234";
+
+    in = initial_permutation(in);
+    std::cout << in << std::endl;
+
+    in = final_permutation(in);
+    std::cout << in  << std::endl;
 
     // E
     int expansion_function[64] = {
