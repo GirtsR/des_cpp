@@ -130,8 +130,12 @@ std::string expansion(std::string input) {
     return output;
 }
 
-std::string exclusive_or(std::string block, std::string key) {
-    auto bitset = std::bitset<48>(block) ^std::bitset<48>(key);
+std::string exclusive_or_48(std::string block1, std::string block2) {
+    auto bitset = std::bitset<48>(block1) ^std::bitset<48>(block2);
+    return bitset.to_string();
+}
+std::string exclusive_or_32(std::string block1, std::string block2) {
+    auto bitset = std::bitset<32>(block1) ^std::bitset<32>(block2);
     return bitset.to_string();
 }
 
@@ -139,7 +143,7 @@ std::string feistel(std::string input, std::string subkey) {
     //TODO - implement me
     input = expansion(input);
     std::cout << "Expanded: " << input << std::endl;
-    std::string output = exclusive_or(input, subkey);
+    std::string output = exclusive_or_48(input, subkey);
     std::cout << "XOR: " << output << std::endl;
     return "";
 }
@@ -250,6 +254,7 @@ int main() {
 
         std::string left = in.substr(0, in.length() / 2);
         std::string right = in.substr(in.length() / 2);
+        std::string right_next = right;
 
         prev_key = shift_key(prev_key, round);
         std::string round_key = compress_key(prev_key);
@@ -257,7 +262,12 @@ int main() {
         std::cout << "Left: " << left << std::endl;
         std::cout << "Right " << right << std::endl;
 
-        right = feistel(right, round_key);
+        right_next = feistel(right, round_key);
+
+        right_next = exclusive_or_32(left, right_next);
+
+        //Generate input for the next round
+        in = right + right_next;
     }
 
     // P-Box permutation
