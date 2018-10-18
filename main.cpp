@@ -175,17 +175,16 @@ std::string shift_key(const std::string &key, int round) {
 }
 
 std::string compress_key(std::string key) {
-    char new_key[48];
-
+    std::string output;
     for (int i = 0; i < 48; i++) {
-        new_key[i] = key[com_per[i] - 1];
+        output += key[com_per[i] - 1];
     }
 
-    return std::string(new_key);
+    return output;
 }
 
 // Key permutation
-int key_permut[64] = {
+int key_perm[64] = {
     57, 49, 41, 33, 25, 17, 9, 1, 58, 50, 42, 34, 26, 18,
     10, 2, 59, 51, 43, 35, 27, 19, 11, 3, 60, 52, 44, 36,
     63, 55, 47, 39, 31, 23, 15, 7, 62, 54, 46, 38, 30, 22,
@@ -196,7 +195,7 @@ int key_permut[64] = {
 std::string init_key_perm(std::string key) {
     std::string output;
     for (int i = 0; i < key.length(); i++) {
-        int id = key_permut[i] - key_permut[i] / 8 - 1;
+        int id = key_perm[i] - key_perm[i] / 8 - 1; // Remove one index on every 8th bit as we don't checksum bits
         output += key[id];
     }
     return output;
