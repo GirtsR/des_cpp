@@ -232,13 +232,14 @@ int main() {
     while (true) {
         std::cout << "Please enter a 64 bit or 16 hex digit plaintext: ";
         std::cin >> input;
-        if (input.length() == 8) {
-            std::cout << "Entered hex, converting to binary" << std::endl;
+        if (input.length() == 16) {
             plaintext = hex_to_bin(input);
+            std::cout << "Entered hex, binary: " << plaintext << std::endl;
             break;
         } else if (input.length() == 64) {
-            std::cout << "Entered binary" << std::endl;
             plaintext = input;
+            std::string hex = bin_to_hex(plaintext);
+            std::cout << "Entered binary, hex: " << hex << std::endl;
             break;
         } else {
             std::cout << "Incorrect plaintext length" << std::endl;
