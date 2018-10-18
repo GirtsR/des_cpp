@@ -1,10 +1,7 @@
 #include <iostream>
 #include <map>
 
-int main() {
-    std::cout << "Welcome to this DES cipher implemntation!\n" <<
-              "Created by: Ģirts Rudzišs and Emīls Ozoliņš" << std::endl;
-
+std::string initial_permutation(std::string input) {
     // IP
     int initial_permutation[64] = {
         58, 50, 42, 34, 26, 18, 10, 2,
@@ -16,6 +13,20 @@ int main() {
         61, 53, 45, 37, 29, 21, 13, 5,
         63, 55, 47, 39, 31, 23, 15, 7
     };
+
+    std::string output;
+    for (int i = 0; i < input.length(); i++) {
+        output += input[initial_permutation[i]-1];
+    }
+    return output;
+}
+int main() {
+    std::cout << "Welcome to this DES cipher implemntation!\n" <<
+              "Created by: Ģirts Rudzišs and Emīls Ozoliņš" << std::endl;
+
+    std::string in = "1234567890123456789012345678901234567890123456789012345678901234";
+
+    std::cout << initial_permutation(in) << std::endl;
 
     // IP^-1
     int final_permutation[64] = {
