@@ -2,8 +2,9 @@
 #include <map>
 
 std::string initial_permutation(std::string input) {
+    const int arr_size = 64;
     // IP
-    int initial_permutation[64] = {
+    int initial_permutation[arr_size] = {
         58, 50, 42, 34, 26, 18, 10, 2,
         60, 52, 44, 36, 28, 20, 12, 4,
         62, 54, 46, 38, 30, 22, 14, 6,
@@ -15,15 +16,16 @@ std::string initial_permutation(std::string input) {
     };
 
     std::string output;
-    for (int i = 0; i < input.length(); i++) {
+    for (int i = 0; i < arr_size; i++) {
         output += input[initial_permutation[i]-1];
     }
     return output;
 }
 
 std::string final_permutation(std::string input) {
+    const int arr_size = 64;
     // IP^-1
-    int final_permutation[64] = {
+    int final_permutation[arr_size] = {
         40, 8, 48, 16, 56, 24, 64, 32,
         39, 7, 47, 15, 55, 23, 63, 31,
         38, 6, 46, 14, 54, 22, 62, 30,
@@ -35,26 +37,16 @@ std::string final_permutation(std::string input) {
     };
 
     std::string output;
-    for (int i = 0; i < input.length(); i++) {
+    for (int i = 0; i < arr_size; i++) {
         output += input[final_permutation[i]-1];
     }
     return output;
 }
 
-int main() {
-    std::cout << "Welcome to this DES cipher implemntation!\n" <<
-              "Created by: Ģirts Rudzišs and Emīls Ozoliņš" << std::endl;
-
-    std::string in = "1234567890123456789012345678901234567890123456789012345678901234";
-
-    in = initial_permutation(in);
-    std::cout << in << std::endl;
-
-    in = final_permutation(in);
-    std::cout << in  << std::endl;
-
+std::string expansion(std::string input) {
+    const int arr_size = 48;
     // E
-    int expansion_function[64] = {
+    int expansion_function[arr_size] = {
         32, 1, 2, 3, 4, 5,
         4, 5, 6, 7, 8, 9,
         8, 9, 10, 11, 12, 13,
@@ -64,6 +56,63 @@ int main() {
         24, 25, 26, 27, 28, 29,
         28, 29, 30, 31, 32, 1
     };
+
+    std::string output;
+    for (int i = 0; i < arr_size; i++) {
+        output += input[expansion_function[i]-1];
+    }
+    return output;
+}
+
+std::string exclusive_or(std::string block, std::string key) {
+    auto bitset = std::bitset<48>(block) ^ std::bitset<48>(key);
+    return bitset.to_string();
+}
+
+std::string feistel(std::string input, std::string subkey) {
+    //TODO - implement me
+    input = expansion(input);
+    std::cout << "Expanded: " << input << std::endl;
+    std::string output = exclusive_or(input, subkey);
+    std::cout << "XOR: " << output << std::endl;
+    return "";
+}
+
+
+std::string generate_round_key(std::string previous_key) {
+    //TODO - implement me
+    return "";
+}
+
+int main() {
+    std::cout << "Welcome to this DES cipher implemntation!\n" <<
+              "Created by: Ģirts Rudzišs and Emīls Ozoliņš" << std::endl;
+
+    std::string in = "0000000000111111111100000000001111111111000000000011111111110000";    // 64
+    std::string key = "00000000001111111111000000000011111111110000000000111111";    // 56
+
+    in = initial_permutation(in);
+    std::cout << in << std::endl;
+
+    in = final_permutation(in);
+    std::cout << in  << std::endl;
+
+    //TODO - do all round keys need to be stored?
+    std::string prev_key = "";
+
+    for (int i=0; i < 16; i++) {
+        std::cout << "Round " << i+1 << ":" << std::endl;
+
+        std::string left = in.substr(0, in.length()/2);
+        std::string right = in.substr(in.length()/2);
+
+        std::string round_key = generate_round_key(prev_key);
+
+        std::cout << "Left: " << left << std::endl;
+        std::cout << "Right " << right << std::endl;
+
+        right = feistel(right, round_key);
+    }
 
     // P
     int permutation[32] = {
