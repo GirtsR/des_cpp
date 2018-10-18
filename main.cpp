@@ -174,7 +174,6 @@ std::string shift_key_left(const std::string &key, int round) {
     return r_left.to_string() + r_right.to_string();
 }
 
-
 std::string shift_key_right(const std::string &key, int round) {
     unsigned long len = key.length();
 
@@ -212,14 +211,6 @@ std::string init_key_perm(std::string key) {
     }
     return output;
 }
-
-// P-Box permutation
-int permutation[32] = {
-    16, 7, 20, 21, 29, 12, 28, 17,
-    1, 15, 23, 26, 5, 18, 31, 10,
-    2, 8, 24, 14, 32, 27, 3, 9,
-    19, 13, 30, 6, 22, 11, 4, 25
-};
 
 // S-boxes
 int s_boxes[8][64] = {
@@ -295,9 +286,38 @@ std::string s_box_value(const std::string &value, int s_round) {
     int row = calc_row(bits);
     int col = calc_col(bits);
 
-    int box_val = s_boxes[s_round][row*16 + col];
+    int box_val = s_boxes[s_round][row * 16 + col];
     std::bitset<4> result((unsigned long) box_val);
     return result.to_string();
+}
+
+std::string s_box_sub(const std::string &value) {
+    std::string res;
+
+    for (int i = 0; i < 8; i++) {
+        unsigned long s_loc = i * 6UL;
+        std::string tmp_s = value.substr(s_loc, 6);
+        res += s_box_value(tmp_s, i);
+    }
+
+    return res;
+}
+
+// P-Box permutation
+int p_box[32] = {
+    16, 7, 20, 21, 29, 12, 28, 17,
+    1, 15, 23, 26, 5, 18, 31, 10,
+    2, 8, 24, 14, 32, 27, 3, 9,
+    19, 13, 30, 6, 22, 11, 4, 25
+};
+
+std::string p_box_per(std::string value) {
+    std::string res;
+
+    for (int i = 0; i < 32; i++) {
+        res += value[p_box[i] - 1];
+    }
+    return res;
 }
 
 std::string feistel(std::string input, std::string subkey) {
@@ -306,17 +326,12 @@ std::string feistel(std::string input, std::string subkey) {
     std::string x_out = exclusive_or_48(input, subkey);
     std::cout << "XOR: " << x_out << std::endl;
 
-    std::string s_box_res;
+    std::string s_box = s_box_sub(x_out);
+    std::cout << "S-Box: " << s_box << std::endl;
 
-    for (int i = 0; i < 8; i++) {
-        unsigned long s_loc = i * 6UL;
-        std::string tmp_s = x_out.substr(s_loc, 6);
-        s_box_res += s_box_value(tmp_s, i);
-    }
-
-    std::cout << "S-Box: " << s_box_res << std::endl;
-
-    return "";
+    std::string p_box = p_box_per(s_box);
+    std::cout << "P-Box: " << p_box << std::endl;
+    return p_box;
 }
 
 int main() {
