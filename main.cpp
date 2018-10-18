@@ -1,6 +1,71 @@
 #include <iostream>
 #include <map>
 
+std::string hex_to_bin(std::string hex) {
+    std::string binary;
+    for (int i = 0; i < hex.length(); i++) {
+        switch (std::toupper(hex[i])) {
+            case '0': binary.append("0000");
+                break;
+            case '1': binary.append("0001");
+                break;
+            case '2': binary.append("0010");
+                break;
+            case '3': binary.append("0011");
+                break;
+            case '4': binary.append("0100");
+                break;
+            case '5': binary.append("0101");
+                break;
+            case '6': binary.append("0110");
+                break;
+            case '7': binary.append("0111");
+                break;
+            case '8': binary.append("1000");
+                break;
+            case '9': binary.append("1001");
+                break;
+            case 'A': binary.append("1010");
+                break;
+            case 'B': binary.append("1011");
+                break;
+            case 'C': binary.append("1100");
+                break;
+            case 'D': binary.append("1101");
+                break;
+            case 'E': binary.append("1110");
+                break;
+            case 'F': binary.append("1111");
+                break;
+        }
+    }
+    return binary;
+}
+
+std::string bin_to_hex(std::string binary) {
+    std::string hex;
+    for (int i = 0; i < binary.length(); i += 4) {
+        std::string digits = binary.substr(i, 4);
+        if (digits.compare("0000") == 0) hex += '0';
+        else if (digits.compare("0001") == 0) hex += '1';
+        else if (digits.compare("0010") == 0) hex += '2';
+        else if (digits.compare("0011") == 0) hex += '3';
+        else if (digits.compare("0100") == 0) hex += '4';
+        else if (digits.compare("0101") == 0) hex += '5';
+        else if (digits.compare("0110") == 0) hex += '6';
+        else if (digits.compare("0111") == 0) hex += '7';
+        else if (digits.compare("1000") == 0) hex += '8';
+        else if (digits.compare("1001") == 0) hex += '9';
+        else if (digits.compare("1010") == 0) hex += 'A';
+        else if (digits.compare("1011") == 0) hex += 'B';
+        else if (digits.compare("1100") == 0) hex += 'C';
+        else if (digits.compare("1101") == 0) hex += 'D';
+        else if (digits.compare("1110") == 0) hex += 'E';
+        else if (digits.compare("1111") == 0) hex += 'F';
+    }
+    return hex;
+}
+
 std::string initial_permutation(std::string input) {
     const int arr_size = 64;
     // IP
@@ -17,7 +82,7 @@ std::string initial_permutation(std::string input) {
 
     std::string output;
     for (int i = 0; i < arr_size; i++) {
-        output += input[initial_permutation[i]-1];
+        output += input[initial_permutation[i] - 1];
     }
     return output;
 }
@@ -38,7 +103,7 @@ std::string final_permutation(std::string input) {
 
     std::string output;
     for (int i = 0; i < arr_size; i++) {
-        output += input[final_permutation[i]-1];
+        output += input[final_permutation[i] - 1];
     }
     return output;
 }
@@ -59,13 +124,13 @@ std::string expansion(std::string input) {
 
     std::string output;
     for (int i = 0; i < arr_size; i++) {
-        output += input[expansion_function[i]-1];
+        output += input[expansion_function[i] - 1];
     }
     return output;
 }
 
 std::string exclusive_or(std::string block, std::string key) {
-    auto bitset = std::bitset<48>(block) ^ std::bitset<48>(key);
+    auto bitset = std::bitset<48>(block) ^std::bitset<48>(key);
     return bitset.to_string();
 }
 
@@ -78,7 +143,6 @@ std::string feistel(std::string input, std::string subkey) {
     return "";
 }
 
-
 std::string generate_round_key(std::string previous_key) {
     //TODO - implement me
     return "";
@@ -88,6 +152,25 @@ int main() {
     std::cout << "Welcome to this DES cipher implemntation!\n" <<
               "Created by: Ģirts Rudzišs and Emīls Ozoliņš" << std::endl;
 
+    std::string plaintext;
+    std::string input;
+
+    while (true) {
+        std::cout << "Please enter a 64 bit or 16 hex digit plaintext: ";
+        std::cin >> input;
+        if (input.length() == 8) {
+            std::cout << "Entered hex, converting to binary" << std::endl;
+            plaintext = hex_to_bin(input);
+            break;
+        } else if (input.length() == 64) {
+            std::cout << "Entered binary" << std::endl;
+            plaintext = input;
+            break;
+        } else {
+            std::cout << "Incorrect plaintext length" << std::endl;
+        }
+    }
+
     std::string in = "0000000000111111111100000000001111111111000000000011111111110000";    // 64
     std::string key = "00000000001111111111000000000011111111110000000000111111";    // 56
 
@@ -95,16 +178,16 @@ int main() {
     std::cout << in << std::endl;
 
     in = final_permutation(in);
-    std::cout << in  << std::endl;
+    std::cout << in << std::endl;
 
     //TODO - do all round keys need to be stored?
     std::string prev_key = "";
 
-    for (int i=0; i < 16; i++) {
-        std::cout << "Round " << i+1 << ":" << std::endl;
+    for (int i = 0; i < 16; i++) {
+        std::cout << "Round " << i + 1 << ":" << std::endl;
 
-        std::string left = in.substr(0, in.length()/2);
-        std::string right = in.substr(in.length()/2);
+        std::string left = in.substr(0, in.length() / 2);
+        std::string right = in.substr(in.length() / 2);
 
         std::string round_key = generate_round_key(prev_key);
 
