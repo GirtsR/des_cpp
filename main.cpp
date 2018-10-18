@@ -180,6 +180,24 @@ std::string compress_key(std::string key) {
     return std::string(new_key);
 }
 
+// Key permutation
+int key_permut[64] = {
+    57, 49, 41, 33, 25, 17, 9, 1, 58, 50, 42, 34, 26, 18,
+    10, 2, 59, 51, 43, 35, 27, 19, 11, 3, 60, 52, 44, 36,
+    63, 55, 47, 39, 31, 23, 15, 7, 62, 54, 46, 38, 30, 22,
+    14, 6, 61, 53, 45, 37, 29, 21, 13, 5, 28, 20, 12, 4
+};
+
+// Initial key permutation
+std::string init_key_perm(std::string key) {
+    std::string output;
+    for (int i = 0; i < key.length(); i++) {
+        int id = key_permut[i] - key_permut[i] / 8 - 1;
+        output += key[id];
+    }
+    return output;
+}
+
 int main() {
     std::cout << "Welcome to this DES cipher implemntation!\n" <<
               "Created by: Ģirts Rudzišs and Emīls Ozoliņš" << std::endl;
@@ -225,7 +243,7 @@ int main() {
     in = final_permutation(in);
     std::cout << in << std::endl;
 
-    std::string prev_key = "";
+    std::string prev_key = init_key_perm(key);
 
     for (int round = 0; round < 16; round++) {
         std::cout << "Round " << round + 1 << ":" << std::endl;
@@ -249,22 +267,6 @@ int main() {
         2, 8, 24, 14, 32, 27, 3, 9,
         19, 13, 30, 6, 22, 11, 4, 25
     };
-
-    // PC-1 (Permuted choice 1)
-    int permuted_choice_one_left[32] = {
-        57, 49, 41, 33, 25, 17, 9,
-        1, 58, 50, 42, 34, 26, 18,
-        10, 2, 59, 51, 43, 35, 27,
-        19, 11, 3, 60, 52, 44, 36
-    };
-    int permuted_choice_one_right[32] = {
-        63, 55, 47, 39, 31, 23, 15,
-        7, 62, 54, 46, 38, 30, 22,
-        14, 6, 61, 53, 45, 37, 29,
-        21, 13, 5, 28, 20, 12, 4
-
-    };
-
 
     // S-boxes
     int s_boxes[8][64] = {
