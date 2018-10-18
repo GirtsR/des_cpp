@@ -1,3 +1,19 @@
+/**
+ * Created by Ģirts Rudzišs, Emīls Ozoliņš
+ *
+ * Some test cases:
+ * --
+ * plaintext: 0000000000111111111100000000001111111111000000000011111111110000
+ * key: 00000000001111111111000000000011111111110000000000111111
+ * ciphertext: 1110110011101001001001011100001001100001111111000011111100110011
+ * --
+ * --
+ * plaintext: 8787878787878787 (hex)
+ * key: 00001110011001100100100110011110101011011000001100111001
+ * ciphertext: 0000000000000000000000000000000000000000000000000000000000000000
+ * --
+ */
+
 #include <iostream>
 #include <map>
 #include <bitset>
@@ -322,22 +338,15 @@ std::string p_box_per(std::string value) {
 
 std::string feistel(std::string input, std::string subkey) {
     input = expansion(input);
-    std::cout << "Expanded: " << input << std::endl;
     std::string x_out = exclusive_or_48(input, subkey);
-    std::cout << "XOR: " << x_out << std::endl;
 
     std::string s_box = s_box_sub(x_out);
-    std::cout << "S-Box: " << s_box << std::endl;
 
     std::string p_box = p_box_per(s_box);
-    std::cout << "P-Box: " << p_box << std::endl;
     return p_box;
 }
 
 int main() {
-    std::cout << "Welcome to this DES cipher implemntation!\n" <<
-              "Created by: Ģirts Rudzišs and Emīls Ozoliņš" << std::endl;
-
     std::string plaintext;
     std::string input;
 
@@ -346,12 +355,12 @@ int main() {
         std::cin >> input;
         if (input.length() == 16) {
             plaintext = hex_to_bin(input);
-            std::cout << "Entered hex, binary: " << plaintext << std::endl;
+            std::cout << "Entered hex, binary representation: " << plaintext << std::endl;
             break;
         } else if (input.length() == 64) {
             plaintext = input;
             std::string hex = bin_to_hex(plaintext);
-            std::cout << "Entered binary, hex: " << hex << std::endl;
+            std::cout << "Entered binary, hex representation: " << hex << std::endl;
             break;
         } else {
             std::cout << "Incorrect plaintext length" << std::endl;
@@ -369,13 +378,8 @@ int main() {
         }
     }
 
-    //std::string in = "0000000000111111111100000000001111111111000000000011111111110000";    // 64
-    //std::string key = "00000000001111111111000000000011111111110000000000111111";    // 56
-    //8787878787878787
-    //00001110011001100100100110011110101011011000001100111001
-
     //Encryption
-    std::cout << "Encrypting..." << std::endl;
+    std::cout << "\nEncrypting..." << std::endl;
 
     std::string in = plaintext;
 
@@ -383,7 +387,7 @@ int main() {
     std::string prev_key = init_key_perm(key);
 
     for (int round = 0; round < 16; round++) {
-        std::cout << "Round " << round + 1 << ":" << std::endl;
+        std::cout << "Round " << round + 1 << ": ";
 
         std::string left = in.substr(0, in.length() / 2);
         std::string right = in.substr(in.length() / 2);
@@ -392,7 +396,6 @@ int main() {
         prev_key = shift_key_left(prev_key, round);
         std::string round_key = compress_key(prev_key);
 
-        std::cout << "Round key: " << round_key << std::endl;
         right_next = feistel(right, round_key);
 
         right_next = exclusive_or_32(left, right_next);
@@ -401,23 +404,23 @@ int main() {
             //Generate input for the next round
             in = right + right_next;
         } else {
-            //Last round - output changes
+            //Last round - output swaps places
             in = right_next + right;
         }
-        std::cout << "Generated cipher in this round: " << in << std::endl;
+        std::cout << in << " | " << bin_to_hex(in) << std::endl;
     }
 
     std::string ciphertext = final_permutation(in);
-    std::cout << "Ciphertext: " << ciphertext << " | " << bin_to_hex(ciphertext) << std::endl;
+    std::cout << "\nCiphertext: " << ciphertext << " | " << bin_to_hex(ciphertext) << std::endl;
 
     //Decryption
-    std::cout << "Decrypting..." << std::endl;
+    std::cout << "\nDecrypting..." << std::endl;
 
     in = initial_permutation(ciphertext);
 
     prev_key = init_key_perm(key);
     for (int round = 0; round < 16; round++) {
-        std::cout << "Round " << round + 1 << ":" << std::endl;
+        std::cout << "Round " << round + 1 << ": ";
 
         std::string left = in.substr(0, in.length() / 2);
         std::string right = in.substr(in.length() / 2);
@@ -426,7 +429,6 @@ int main() {
         prev_key = shift_key_right(prev_key, round);
         std::string round_key = compress_key(prev_key);
 
-        std::cout << "Round key: " << round_key << std::endl;
         right_next = feistel(right, round_key);
 
         right_next = exclusive_or_32(left, right_next);
@@ -435,14 +437,14 @@ int main() {
             //Generate input for the next round
             in = right + right_next;
         } else {
-            //Last round - output swaps
+            //Last round - output swaps places
             in = right_next + right;
         }
-        std::cout << "Generated cipher in this round: " << in << std::endl;
+        std::cout << in << " | " << bin_to_hex(in) << std::endl;
     }
 
     std::string final_plaintext = final_permutation(in);
-    std::cout << "Decrypted plaintext: " << final_plaintext << " | " << bin_to_hex(final_plaintext) << std::endl;
+    std::cout << "\nDecrypted plaintext: " << final_plaintext << " | " << bin_to_hex(final_plaintext) << std::endl;
 
     if (plaintext == final_plaintext) {
         std::cout << "Plaintexts match!" << std::endl;
