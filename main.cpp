@@ -396,6 +396,24 @@ std::string &decrypt_round(std::string &in, std::string &prev_key, int round) {
     return in;
 }
 
+std::string encrypt(const std::string &key, std::string &in) {
+    std::string prev_key = init_key_perm(key);
+    in = initial_permutation(in);
+    for (int round = 0; round < 16; round++) {
+        in = encrypt_round(in, prev_key, round);
+    }
+    return final_permutation(in);
+}
+
+std::string decrypt(const std::string &key, std::string &in) {
+    std::string prev_key = init_key_perm(key);
+    in = initial_permutation(in);
+    for (int round = 0; round < 16; round++) {
+        in = decrypt_round(in, prev_key, round);
+    }
+    return final_permutation(in);
+}
+
 int main() {
     std::string plaintext;
     std::string input;
@@ -433,27 +451,15 @@ int main() {
 
     std::string in = plaintext;
 
-    in = initial_permutation(in);
-    std::string prev_key = init_key_perm(key);
+    std::string ciphertext = encrypt(key, in);
 
-    for (int round = 0; round < 16; round++) {
-        in = encrypt_round(in, prev_key, round);
-    }
-
-    std::string ciphertext = final_permutation(in);
     std::cout << "\nCiphertext: " << ciphertext << " | " << bin_to_hex(ciphertext) << std::endl;
 
     //Decryption
     std::cout << "\nDecrypting..." << std::endl;
 
-    in = initial_permutation(ciphertext);
+    std::string final_plaintext = decrypt(key, ciphertext);
 
-    prev_key = init_key_perm(key);
-    for (int round = 0; round < 16; round++) {
-        in = decrypt_round(in, prev_key, round);
-    }
-
-    std::string final_plaintext = final_permutation(in);
     std::cout << "\nDecrypted plaintext: " << final_plaintext << " | " << bin_to_hex(final_plaintext) << std::endl;
 
     if (plaintext == final_plaintext) {
