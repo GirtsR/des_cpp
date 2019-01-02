@@ -196,15 +196,22 @@ std::bitset<56> shift_key_left(const std::bitset<56> &key, int round) {
     return result;
 }
 
-std::string shift_key_right(const std::string &key, int round) {
-    unsigned long len = key.length();
+std::bitset<56> shift_key_right(const std::bitset<56> &key, int round) {
+    std::bitset<56> result;
+    std::bitset<28> left;
+    std::bitset<28> right;
+    for (int i = 0; i < 28; i++) {
+        left[i] = key[i + 28];
+        right[i] = key[i];
+    }
+    std::bitset<28> r_left = ror(left, key_shift_by_round[round]);
+    std::bitset<28> r_right = ror(right, key_shift_by_round[round]);
 
-    std::string left = key.substr(0, len / 2);
-    std::string right = key.substr(len / 2);
-    std::bitset<28> r_left = ror(std::bitset<28>(left), key_shift_by_round_decrypt[round]);
-    std::bitset<28> r_right = ror(std::bitset<28>(right), key_shift_by_round_decrypt[round]);
-
-    return r_left.to_string() + r_right.to_string();
+    for (int i = 0; i < 28; i++) {
+        result[28 + i] = r_left[i];
+        result[i] = r_right[i];
+    }
+    return result;
 }
 
 std::bitset<48> compress_key(std::bitset<56> key) {
@@ -318,7 +325,7 @@ std::bitset<32> s_box_sub(const std::bitset<48> &value) {
         unsigned long s_loc = i * 6UL;
         std::bitset<6> current_bits;
         for (int j = 0; j < 6; j++) {
-            current_bits[5 - j] = value[47 - (j + s_loc + 6)];
+            current_bits[5 - j] = value[47 - (j + s_loc)];
         }
         std::bitset<4> sbox_v = s_box_value(current_bits, i);
         for (int j = 0; j < 4; j++) {
@@ -391,30 +398,40 @@ std::bitset<64> encrypt_round(std::bitset<64> &in, std::bitset<56> &prev_key, in
     return in;
 }
 
-//std::string &decrypt_round(std::string &in, std::string &prev_key, int round) {
-//    std::cout << "Round " << round + 1 << ": ";
-//
-//    std::string left = in.substr(0, in.length() / 2);
-//    std::string right = in.substr(in.length() / 2);
-//    std::string right_next;
-//
-//    prev_key = shift_key_right(prev_key, round);
-//    std::string round_key = compress_key(prev_key);
-//
-//    right_next = feistel(right, round_key);
-//
-//    right_next = exclusive_or_32(left, right_next);
-//
-//    if (round != 15) {
-//        //Generate input for the next round
-//        in = right + right_next;
-//    } else {
-//        //Last round - output swaps places
-//        in = right_next + right;
-//    }
-//    std::cout << in << " | " << bin_to_hex(in) << std::endl;
-//    return in;
-//}
+std::bitset<64> &decrypt_round(std::bitset<64> &in, std::bitset<56> &prev_key, int round) {
+    std::cout << "Round " << round + 1 << ": ";
+
+    std::bitset<32> left;
+    std::bitset<32> right;
+    for (int i = 0; i < 32; i++) {
+        left[i] = in[i + 32];
+        right[i] = in[i];
+    }
+    std::bitset<32> right_next;
+
+    prev_key = shift_key_right(prev_key, round);
+    std::bitset<48> round_key = compress_key(prev_key);
+
+    right_next = feistel(right, round_key);
+
+    right_next = exclusive_or_32(left, right_next);
+
+    if (round != 15) {
+        //Generate input for the next round
+        for (int i = 0; i < 32; i++) {
+            in[i + 32] = right[i];
+            in[i] = right_next[i];
+        }
+    } else {
+        //Last round - output swaps places
+        for (int i = 0; i < 32; i++) {
+            in[i + 32] = right_next[i];
+            in[i] = right[i];
+        }
+    }
+    std::cout << in.to_string() << " | " << bin_to_hex(in.to_string()) << std::endl;
+    return in;
+}
 
 std::bitset<64> encrypt(const std::bitset<56> &key, std::bitset<64> &in) {
     std::bitset<56> prev_key = init_key_perm(key);
@@ -424,17 +441,17 @@ std::bitset<64> encrypt(const std::bitset<56> &key, std::bitset<64> &in) {
     }
     return final_permutation(in);
 }
-std::string decrypt(const std::string &key, std::string &in) {
-//    std::string prev_key = init_key_perm(key);
-//    in = initial_permutation(in);
-//    for (int round = 0; round < 16; round++) {
-//        in = decrypt_round(in, prev_key, round);
-//    }
-//    return final_permutation(in);
+std::bitset<64>  decrypt(const std::bitset<56> &key, std::bitset<64> &in) {
+    std::bitset<56> prev_key = init_key_perm(key);
+    in = initial_permutation(in);
+    for (int round = 0; round < 16; round++) {
+        in = decrypt_round(in, prev_key, round);
+    }
+    return final_permutation(in);
 }
 
 int main() {
-    std::string plaintext = "1000011110000111100001111000011110000111100001111000011110000111";
+    std::string plaintext_string = "1000011110000111100001111000011110000111100001111000011110000111";
     std::string input;
 
 //    while (true) {
@@ -468,8 +485,9 @@ int main() {
     //Encryption
     std::cout << "\nEncrypting..." << std::endl;
 
-    std::bitset<64> in(plaintext);
+    std::bitset<64> plaintext(plaintext_string);
     std::bitset<56> key(key_string);
+    std::bitset<64> in(plaintext);
 
     std::bitset<64> ciphertext = encrypt(key, in);
 
@@ -478,15 +496,15 @@ int main() {
     //Decryption
     std::cout << "\nDecrypting..." << std::endl;
 
-//    std::string final_plaintext = decrypt(key, ciphertext);
+    std::bitset<64> final_plaintext = decrypt(key, ciphertext);
 
-//    std::cout << "\nDecrypted plaintext: " << final_plaintext << " | " << bin_to_hex(final_plaintext) << std::endl;
+    std::cout << "\nDecrypted plaintext: " << final_plaintext.to_string() << " | " << bin_to_hex(final_plaintext.to_string()) << std::endl;
 
-//    if (plaintext == final_plaintext) {
-//        std::cout << "Plaintexts match!" << std::endl;
-//        return 0;
-//    } else {
-//        std::cout << "Plaintexts do not match :(" << std::endl;
-//        return 1;
-//    }
+    if (plaintext == final_plaintext) {
+        std::cout << "Plaintexts match!" << std::endl;
+        return 0;
+    } else {
+        std::cout << "Plaintexts do not match :(" << std::endl;
+        return 1;
+    }
 }
