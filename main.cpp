@@ -204,8 +204,8 @@ std::bitset<56> shift_key_right(const std::bitset<56> &key, int round) {
         left[i] = key[i + 28];
         right[i] = key[i];
     }
-    std::bitset<28> r_left = ror(left, key_shift_by_round[round]);
-    std::bitset<28> r_right = ror(right, key_shift_by_round[round]);
+    std::bitset<28> r_left = ror(left, key_shift_by_round_decrypt[round]);
+    std::bitset<28> r_right = ror(right, key_shift_by_round_decrypt[round]);
 
     for (int i = 0; i < 28; i++) {
         result[28 + i] = r_left[i];
