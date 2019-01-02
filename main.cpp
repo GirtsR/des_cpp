@@ -17,6 +17,7 @@
 #include <iostream>
 #include <map>
 #include <bitset>
+#include <cctype>
 
 std::string hex_to_bin(std::string hex) {
     std::string binary;
@@ -415,36 +416,36 @@ std::string decrypt(const std::string &key, std::string &in) {
 }
 
 int main() {
-    std::string plaintext;
+    std::string plaintext = "1000011110000111100001111000011110000111100001111000011110000111";
     std::string input;
 
-    while (true) {
-        std::cout << "Please enter a 64 bit or 16 hex digit plaintext: ";
-        std::cin >> input;
-        if (input.length() == 16) {
-            plaintext = hex_to_bin(input);
-            std::cout << "Entered hex, binary representation: " << plaintext << std::endl;
-            break;
-        } else if (input.length() == 64) {
-            plaintext = input;
-            std::string hex = bin_to_hex(plaintext);
-            std::cout << "Entered binary, hex representation: " << hex << std::endl;
-            break;
-        } else {
-            std::cout << "Incorrect plaintext length" << std::endl;
-        }
-    }
+//    while (true) {
+//        std::cout << "Please enter a 64 bit or 16 hex digit plaintext: ";
+//        std::cin >> input;
+//        if (input.length() == 16) {
+//            plaintext = hex_to_bin(input);
+//            std::cout << "Entered hex, binary representation: " << plaintext << std::endl;
+//            break;
+//        } else if (input.length() == 64) {
+//            plaintext = input;
+//            std::string hex = bin_to_hex(plaintext);
+//            std::cout << "Entered binary, hex representation: " << hex << std::endl;
+//            break;
+//        } else {
+//            std::cout << "Incorrect plaintext length" << std::endl;
+//        }
+//    }
 
-    std::string key;
-    while (true) {
-        std::cout << "Please enter a 56 bit key: ";
-        std::cin >> key;
-        if (key.length() == 56) {
-            break;
-        } else {
-            std::cout << "Incorrect key length";
-        }
-    }
+    std::string key = "00001110011001100100100110011110101011011000001100111001";
+//    while (true) {
+//        std::cout << "Please enter a 56 bit key: ";
+//        std::cin >> key;
+//        if (key.length() == 56) {
+//            break;
+//        } else {
+//            std::cout << "Incorrect key length";
+//        }
+//    }
 
     //Encryption
     std::cout << "\nEncrypting..." << std::endl;
