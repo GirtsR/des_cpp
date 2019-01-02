@@ -346,6 +346,56 @@ std::string feistel(std::string input, std::string subkey) {
     return p_box;
 }
 
+std::string &encrypt_round(std::string &in, std::string &prev_key, int round) {
+    std::cout << "Round " << round + 1 << ": ";
+
+    std::string left = in.substr(0, in.length() / 2);
+    std::string right = in.substr(in.length() / 2);
+    std::string right_next;
+
+    prev_key = shift_key_left(prev_key, round);
+    std::string round_key = compress_key(prev_key);
+
+    right_next = feistel(right, round_key);
+
+    right_next = exclusive_or_32(left, right_next);
+
+    if (round != 15) {
+        //Generate input for the next round
+        in = right + right_next;
+    } else {
+        //Last round - output swaps places
+        in = right_next + right;
+    }
+    std::cout << in << " | " << bin_to_hex(in) << std::endl;
+    return in;
+}
+
+std::string &decrypt_round(std::string &in, std::string &prev_key, int round) {
+    std::cout << "Round " << round + 1 << ": ";
+
+    std::string left = in.substr(0, in.length() / 2);
+    std::string right = in.substr(in.length() / 2);
+    std::string right_next;
+
+    prev_key = shift_key_right(prev_key, round);
+    std::__1::string round_key = compress_key(prev_key);
+
+    right_next = feistel(right, round_key);
+
+    right_next = exclusive_or_32(left, right_next);
+
+    if (round != 15) {
+        //Generate input for the next round
+        in = right + right_next;
+    } else {
+        //Last round - output swaps places
+        in = right_next + right;
+    }
+    std::cout << in << " | " << bin_to_hex(in) << std::endl;
+    return in;
+}
+
 int main() {
     std::string plaintext;
     std::string input;
@@ -387,27 +437,7 @@ int main() {
     std::string prev_key = init_key_perm(key);
 
     for (int round = 0; round < 16; round++) {
-        std::cout << "Round " << round + 1 << ": ";
-
-        std::string left = in.substr(0, in.length() / 2);
-        std::string right = in.substr(in.length() / 2);
-        std::string right_next;
-
-        prev_key = shift_key_left(prev_key, round);
-        std::string round_key = compress_key(prev_key);
-
-        right_next = feistel(right, round_key);
-
-        right_next = exclusive_or_32(left, right_next);
-
-        if (round != 15) {
-            //Generate input for the next round
-            in = right + right_next;
-        } else {
-            //Last round - output swaps places
-            in = right_next + right;
-        }
-        std::cout << in << " | " << bin_to_hex(in) << std::endl;
+        in = encrypt_round(in, prev_key, round);
     }
 
     std::string ciphertext = final_permutation(in);
@@ -420,27 +450,7 @@ int main() {
 
     prev_key = init_key_perm(key);
     for (int round = 0; round < 16; round++) {
-        std::cout << "Round " << round + 1 << ": ";
-
-        std::string left = in.substr(0, in.length() / 2);
-        std::string right = in.substr(in.length() / 2);
-        std::string right_next;
-
-        prev_key = shift_key_right(prev_key, round);
-        std::string round_key = compress_key(prev_key);
-
-        right_next = feistel(right, round_key);
-
-        right_next = exclusive_or_32(left, right_next);
-
-        if (round != 15) {
-            //Generate input for the next round
-            in = right + right_next;
-        } else {
-            //Last round - output swaps places
-            in = right_next + right;
-        }
-        std::cout << in << " | " << bin_to_hex(in) << std::endl;
+        in = decrypt_round(in, prev_key, round);
     }
 
     std::string final_plaintext = final_permutation(in);
