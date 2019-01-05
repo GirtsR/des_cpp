@@ -18,6 +18,8 @@
 #include <map>
 #include <bitset>
 #include <cctype>
+#include <sstream>
+#include <iomanip>
 
 std::string hex_to_bin(std::string hex) {
     std::string binary;
@@ -60,28 +62,10 @@ std::string hex_to_bin(std::string hex) {
     return binary;
 }
 
-std::string bin_to_hex(std::string binary) {
-    std::string hex;
-    for (int i = 0; i < binary.length(); i += 4) {
-        std::string digits = binary.substr(i, 4);
-        if (digits.compare("0000") == 0) hex += '0';
-        else if (digits.compare("0001") == 0) hex += '1';
-        else if (digits.compare("0010") == 0) hex += '2';
-        else if (digits.compare("0011") == 0) hex += '3';
-        else if (digits.compare("0100") == 0) hex += '4';
-        else if (digits.compare("0101") == 0) hex += '5';
-        else if (digits.compare("0110") == 0) hex += '6';
-        else if (digits.compare("0111") == 0) hex += '7';
-        else if (digits.compare("1000") == 0) hex += '8';
-        else if (digits.compare("1001") == 0) hex += '9';
-        else if (digits.compare("1010") == 0) hex += 'A';
-        else if (digits.compare("1011") == 0) hex += 'B';
-        else if (digits.compare("1100") == 0) hex += 'C';
-        else if (digits.compare("1101") == 0) hex += 'D';
-        else if (digits.compare("1110") == 0) hex += 'E';
-        else if (digits.compare("1111") == 0) hex += 'F';
-    }
-    return hex;
+std::string bin_to_hex(const std::bitset<64> &binary) {
+    std::stringstream res;
+    res << std::setfill('0') << std::setw(16) << std::hex << std::uppercase << binary.to_ulong();
+    return res.str();
 }
 
 std::bitset<64> initial_permutation(const std::bitset<64> &input) {
@@ -155,12 +139,12 @@ std::bitset<32> exclusive_or_32(std::bitset<32> &block1, std::bitset<32> &block2
 }
 
 // Rotate left
-std::bitset<28> rol(std::bitset<28> key, int n) {
+std::bitset<28> rol(const std::bitset<28> &key, int n) {
     return (key << n) | (key >> (28 - n));
 }
 
 // Rotate right
-std::bitset<28> ror(std::bitset<28> key, int n) {
+std::bitset<28> ror(const std::bitset<28> &key, int n) {
     return (key >> n) | (key << (28 - n));
 }
 
@@ -214,7 +198,7 @@ std::bitset<56> shift_key_right(const std::bitset<56> &key, int round) {
     return result;
 }
 
-std::bitset<48> compress_key(std::bitset<56> key) {
+std::bitset<48> compress_key(const std::bitset<56> &key) {
     std::bitset<48> output;
     for (int i = 0; i < 48; i++) {
         output[47 - i] = key[55 - (com_per[i] - 1)];
@@ -293,14 +277,14 @@ int s_boxes[8][64] = {
     },
 };
 
-int calc_row(std::bitset<6> bits) {
+int calc_row(const std::bitset<6> &bits) {
     std::bitset<2> res;
     res[0] = bits[0];
     res[1] = bits[5];
     return (int) res.to_ulong();
 }
 
-int calc_col(std::bitset<6> bits) {
+int calc_col(const std::bitset<6> &bits) {
     std::bitset<4> res;
     res[0] = bits[1];
     res[1] = bits[2];
@@ -394,7 +378,7 @@ std::bitset<64> encrypt_round(std::bitset<64> &in, std::bitset<56> &prev_key, in
             in[i] = right[i];
         }
     }
-    std::cout << in.to_string() << " | " << bin_to_hex(in.to_string()) << std::endl;
+    std::cout << in.to_string() << " | " << bin_to_hex(in) << std::endl;
     return in;
 }
 
@@ -429,7 +413,7 @@ std::bitset<64> &decrypt_round(std::bitset<64> &in, std::bitset<56> &prev_key, i
             in[i] = right[i];
         }
     }
-    std::cout << in.to_string() << " | " << bin_to_hex(in.to_string()) << std::endl;
+    std::cout << in.to_string() << " | " << bin_to_hex(in) << std::endl;
     return in;
 }
 
@@ -451,9 +435,9 @@ std::bitset<64>  decrypt(const std::bitset<56> &key, std::bitset<64> &in) {
 }
 
 int main() {
-    std::string plaintext_string = "1000011110000111100001111000011110000111100001111000011110000111";
-    std::string input;
-
+//    std::string plaintext_string = "1000011110000111100001111000011110000111100001111000011110000111";
+//    std::string input;
+//
 //    while (true) {
 //        std::cout << "Please enter a 64 bit or 16 hex digit plaintext: ";
 //        std::cin >> input;
@@ -470,8 +454,8 @@ int main() {
 //            std::cout << "Incorrect plaintext length" << std::endl;
 //        }
 //    }
-
-    std::string key_string = "00001110011001100100100110011110101011011000001100111001";
+//
+//    std::string key_string = "00001110011001100100100110011110101011011000001100111001";
 //    while (true) {
 //        std::cout << "Please enter a 56 bit key: ";
 //        std::cin >> key;
@@ -485,20 +469,20 @@ int main() {
     //Encryption
     std::cout << "\nEncrypting..." << std::endl;
 
-    std::bitset<64> plaintext(plaintext_string);
-    std::bitset<56> key(key_string);
+    std::bitset<64> plaintext("1000011110000111100001111000011110000111100001111000011110000111");
+    std::bitset<56> key("00001110011001100100100110011110101011011000001100111001");
     std::bitset<64> in(plaintext);
 
     std::bitset<64> ciphertext = encrypt(key, in);
 
-    std::cout << "\nCiphertext: " << ciphertext.to_string() << " | " << bin_to_hex(ciphertext.to_string()) << std::endl;
+    std::cout << "\nCiphertext: " << ciphertext.to_string() << " | " << bin_to_hex(ciphertext) << std::endl;
 
     //Decryption
     std::cout << "\nDecrypting..." << std::endl;
 
     std::bitset<64> final_plaintext = decrypt(key, ciphertext);
 
-    std::cout << "\nDecrypted plaintext: " << final_plaintext.to_string() << " | " << bin_to_hex(final_plaintext.to_string()) << std::endl;
+    std::cout << "\nDecrypted plaintext: " << final_plaintext.to_string() << " | " << bin_to_hex(final_plaintext) << std::endl;
 
     if (plaintext == final_plaintext) {
         std::cout << "Plaintexts match!" << std::endl;
