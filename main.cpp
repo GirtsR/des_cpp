@@ -379,7 +379,7 @@ std::string &decrypt_round(std::string &in, std::string &prev_key, int round) {
     std::string right_next;
 
     prev_key = shift_key_right(prev_key, round);
-    std::__1::string round_key = compress_key(prev_key);
+    std::string round_key = compress_key(prev_key);
 
     right_next = feistel(right, round_key);
 
